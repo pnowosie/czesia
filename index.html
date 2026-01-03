@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Czesia - Chess Puzzles</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fascinate+Inline&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.1.1/assets/chessground.base.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.1.1/assets/chessground.brown.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chessground@9.1.1/assets/chessground.cburnett.css">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background: white;
+      color: black;
+      min-height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      font-family: 'Fascinate Inline', cursive;
+      font-size: 64px;
+      color: black;
+      margin-bottom: 10px;
+    }
+    .status {
+      margin-bottom: 15px;
+      font-size: 18px;
+      color: #333;
+    }
+    #board {
+      width: 400px;
+      height: 400px;
+    }
+    #board.incorrect {
+      box-shadow: 0 0 0 4px #e57373;
+    }
+    #board.solved {
+      box-shadow: 0 0 0 4px #28a745;
+    }
+    .puzzle-info {
+      margin-top: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #f5f5f5;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #000;
+      font-family: 'Courier New', monospace;
+    }
+    .puzzle-info-icon {
+      font-size: 16px;
+    }
+    .puzzle-action {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 50%;
+      transition: background 0.2s;
+      padding: 0;
+      color: #000;
+    }
+    .puzzle-action:hover:not(:disabled) {
+      background: #e0e0e0;
+    }
+    .puzzle-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    #puzzle-label-text {
+      padding: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Czesia</h1>
+  <div class="status" id="status">Loading...</div>
+  <div id="board"></div>
+  <div class="puzzle-info" id="puzzle-info">
+    <button class="puzzle-action" id="prev-btn" title="Previous puzzle">◀</button>
+    <button class="puzzle-action" id="reset-btn" title="Reset puzzle">🔄</button>
+    <button class="puzzle-action" id="solve-btn" title="Show solution">🔍</button>
+    <button class="puzzle-action" id="puzzle-btn" title="Puzzle info">🧩</button>
+    <span id="puzzle-label-text"></span>
+    <button class="puzzle-action" id="save-btn" title="Save">💾</button>
+    <button class="puzzle-action" id="flip-btn" title="Flip board">🔃</button>
+    <button class="puzzle-action" id="next-btn" title="Next puzzle">▶</button>
+  </div>
+  <div class="selectors" style="margin-top: 15px; display: flex; gap: 10px;">
+    <select id="collection-select" style="padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
+      <option value="">Select a collection...</option>
+    </select>
+    <select id="problem-select" style="padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; display: none;">
+      <option value="">Select a problem...</option>
+    </select>
+  </div>
+
+  <script type="module">
+    import { Chessground } from 'https://esm.sh/chessground@9.1.1';
+    import { Chess } from 'https://esm.sh/chess.js@1.0.0-beta.8';
+
+    // Puzzle collections - loaded from JSON files
+    let puzzles = [];
+    let currentPuzzleIndex = 0;
+    let PUZZLE = null;
+    let indexData = null;
+    
+    /**
+     * Load puzzles from a JSON file
+     */
+    async function loadPuzzleCollection(jsonFile) {
+      try {
+        updateStatus('Loading puzzles...');
+        const response = await fetch(jsonFile);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${jsonFile}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        
+        // Convert JSON puzzle format to internal format
+        puzzles = data.map(p => ({
+          fen: p.fen,
+          orientation: p.orientation,
+          type: p.type,
+          solution: p.solution,
+          puzzleId: p.puzzleId,
+          puzzleNo: parseInt(p.puzzleId.split('-').pop()) || 0
+        }));
+        
+        if (puzzles.length === 0) {
+          throw new Error('No puzzles found in collection');
+        }
+        
+        // Load first puzzle
+        currentPuzzleIndex = 0;
+        PUZZLE = puzzles[currentPuzzleIndex];
+        updatePuzzleInfo();
+        updateNavigationButtons();
+        initPuzzle();
+        updateStatus(`Loaded ${puzzles.length} puzzles`);
+      } catch (error) {
+        console.error('Error loading puzzle collection:', error);
+        updateStatus(`Error: ${error.message}`);
+      }
+    }
+
+    /**
+     * Load index.json and populate collections dropdown
+     */
+    async function loadIndex() {
+      try {
+        const response = await fetch('data/index.json');
+        if (!response.ok) {
+          throw new Error('Failed to load index.json');
+        }
+        indexData = await response.json();
+        populateCollections();
+        updateStatus('Select a collection');
+      } catch (error) {
+        console.error('Error loading index:', error);
+        updateStatus(`Error: ${error.message}`);
+      }
+    }
+
+    /**
+     * Populate collection dropdown from index data
+     */
+    function populateCollections() {
+      const select = document.getElementById('collection-select');
+      indexData.collections.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = c.name;
+        select.appendChild(option);
+      });
+    }
+
+    /**
+     * Handle collection selection change
+     */
+    function onCollectionChange(collectionId) {
+      const collection = indexData.collections.find(c => c.id === collectionId);
+      const problemSelect = document.getElementById('problem-select');
+
+      // Reset problem dropdown
+      problemSelect.innerHTML = '<option value="">Select a problem...</option>';
+
+      if (!collection) {
+        problemSelect.style.display = 'none';
+        return;
+      }
+
+      // Populate problems
+      collection.problems.forEach(p => {
+        const option = document.createElement('option');
+        option.value = `data/${collectionId}/${p.file}`;
+        option.textContent = p.name;
+        problemSelect.appendChild(option);
+      });
+      problemSelect.style.display = 'block';
+    }
+
+    /**
+     * Load puzzle by index
+     */
+    function loadPuzzleByIndex(index) {
+      if (index >= 0 && index < puzzles.length) {
+        currentPuzzleIndex = index;
+        PUZZLE = puzzles[currentPuzzleIndex];
+        updatePuzzleInfo();
+        updateNavigationButtons();
+        initPuzzle();
+      }
+    }
+    
+    /**
+     * Load next puzzle
+     */
+    function loadNextPuzzle() {
+      if (currentPuzzleIndex < puzzles.length - 1) {
+        loadPuzzleByIndex(currentPuzzleIndex + 1);
+      }
+    }
+
+    /**
+     * Load previous puzzle
+     */
+    function loadPrevPuzzle() {
+      if (currentPuzzleIndex > 0) {
+        loadPuzzleByIndex(currentPuzzleIndex - 1);
+      }
+    }
+
+    const STORAGE_KEY = 'czesia-saved-puzzle';
+
+    /**
+     * Save current puzzle state to localStorage
+     */
+    function savePuzzleState() {
+      if (!PUZZLE) return;
+
+      const collectionSelect = document.getElementById('collection-select');
+      const problemSelect = document.getElementById('problem-select');
+
+      const state = {
+        collectionId: collectionSelect.value,
+        problemFile: problemSelect.value,
+        puzzleIndex: currentPuzzleIndex
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      updateStatus('Puzzle saved!');
+    }
+
+    /**
+     * Restore saved puzzle state from localStorage
+     */
+    async function restoreSavedState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return false;
+
+      try {
+        const state = JSON.parse(saved);
+        if (!state.collectionId || !state.problemFile) return false;
+
+        // Set collection dropdown
+        const collectionSelect = document.getElementById('collection-select');
+        collectionSelect.value = state.collectionId;
+        onCollectionChange(state.collectionId);
+
+        // Set problem dropdown
+        const problemSelect = document.getElementById('problem-select');
+        problemSelect.value = state.problemFile;
+
+        // Load the puzzle collection
+        await loadPuzzleCollection(state.problemFile);
+
+        // Navigate to saved puzzle index
+        if (state.puzzleIndex >= 0 && state.puzzleIndex < puzzles.length) {
+          loadPuzzleByIndex(state.puzzleIndex);
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Error restoring saved state:', error);
+        return false;
+      }
+    }
+
+    /**
+     * Update navigation button states
+     */
+    function updateNavigationButtons() {
+      const nextBtn = document.getElementById('next-btn');
+      const prevBtn = document.getElementById('prev-btn');
+      const resetBtn = document.getElementById('reset-btn');
+      const saveBtn = document.getElementById('save-btn');
+      const flipBtn = document.getElementById('flip-btn');
+      const puzzleBtn = document.getElementById('puzzle-btn');
+
+      // Disable NEXT on last puzzle
+      nextBtn.disabled = currentPuzzleIndex >= puzzles.length - 1;
+
+      // Disable PREV on first puzzle
+      prevBtn.disabled = currentPuzzleIndex <= 0;
+
+      // Enable buttons when puzzle is loaded
+      resetBtn.disabled = !PUZZLE;
+      saveBtn.disabled = !PUZZLE;
+      flipBtn.disabled = !PUZZLE;
+      puzzleBtn.disabled = !PUZZLE;
+    }
+
+    let chess;
+    let ground;
+    let currentOrientation = 'white'; // Will be set correctly in initPuzzle
+    let moveIndex = 0;
+    let lastOpponentMove = null;
+    let positionBeforeUserMove = null;
+    let solved = false;
+
+    function getLegalMoves() {
+      const dests = new Map();
+      const moves = chess.moves({ verbose: true });
+      for (const move of moves) {
+        if (!dests.has(move.from)) {
+          dests.set(move.from, []);
+        }
+        dests.get(move.from).push(move.to);
+      }
+      return dests;
+    }
+
+    function getColorToMove() {
+      return chess.turn() === 'w' ? 'white' : 'black';
+    }
+
+    function updateBoard() {
+      const turnColor = getColorToMove();
+      ground.set({
+        fen: chess.fen(),
+        turnColor: turnColor,
+        movable: {
+          color: turnColor,
+          dests: getLegalMoves(),
+          free: false
+        }
+      });
+    }
+
+    function onUserMove(orig, dest) {
+      if (!PUZZLE || solved) return;
+
+      // Save position before attempting move
+      positionBeforeUserMove = chess.fen();
+
+      const expectedMove = PUZZLE.solution[moveIndex];
+      const isCorrect = orig === expectedMove.from && dest === expectedMove.to;
+
+      if (isCorrect) {
+        // Correct move!
+        const move = chess.move({ from: orig, to: dest, promotion: 'q' });
+        moveIndex++;
+
+        // Check if puzzle is solved
+        if (moveIndex >= PUZZLE.solution.length) {
+          solved = true;
+          const boardEl = document.getElementById('board');
+          boardEl.classList.remove('incorrect');
+          boardEl.classList.add('solved');
+          updateStatus(`${move.san} - Solved!`);
+          ground.set({
+            fen: chess.fen(),
+            lastMove: [orig, dest],
+            movable: { color: 'none', dests: new Map() }
+          });
+          updateSolveButton();
+        } else {
+          document.getElementById('board').classList.remove('incorrect');
+          updateStatus(`${move.san} - Correct!`);
+          ground.set({ fen: chess.fen(), lastMove: [orig, dest] });
+          updateSolveButton();
+          // Play opponent's response after delay
+          setTimeout(playOpponentResponse, 600);
+        }
+      } else {
+        // Incorrect move - revert
+        const boardEl = document.getElementById('board');
+        boardEl.classList.add('incorrect');
+
+        // First let chess.js validate and make the move (for display), then undo
+        const move = chess.move({ from: orig, to: dest, promotion: 'q' });
+        if (move) {
+          chess.undo();
+        }
+        updateStatus('Incorrect - try again');
+
+        // Revert board to position before user move with opponent's last move highlighted
+        setTimeout(() => {
+          ground.set({
+            fen: positionBeforeUserMove,
+            lastMove: lastOpponentMove ? [lastOpponentMove.from, lastOpponentMove.to] : undefined
+          });
+          updateBoard();
+        }, 300);
+      }
+    }
+
+    function updateStatus(text) {
+      document.getElementById('status').textContent = text;
+    }
+
+    function updatePuzzleInfo() {
+      const puzzleInfoEl = document.getElementById('puzzle-info');
+      const labelTextEl = document.getElementById('puzzle-label-text');
+      if (PUZZLE && PUZZLE.puzzleId) {
+        const puzzleNum = currentPuzzleIndex + 1;
+        const totalPuzzles = puzzles.length;
+        labelTextEl.textContent = `${PUZZLE.puzzleId} (${puzzleNum}/${totalPuzzles})`;
+        puzzleInfoEl.style.display = 'inline-flex';
+      } else {
+        labelTextEl.textContent = '';
+        puzzleInfoEl.style.display = 'none';
+      }
+    }
+
+    function updateSolveButton() {
+      const solveBtn = document.getElementById('solve-btn');
+      if (!PUZZLE) {
+        solveBtn.disabled = true;
+        return;
+      }
+
+      if (solved || moveIndex >= PUZZLE.solution.length) {
+        solveBtn.disabled = true;
+      } else {
+        // Check if current moveIndex corresponds to user's turn
+        const expectedMove = PUZZLE.solution[moveIndex];
+        if (expectedMove) {
+          const legalMoves = chess.moves({ verbose: true });
+          const isUserTurn = legalMoves.some(m =>
+            m.from === expectedMove.from && m.to === expectedMove.to
+          );
+          solveBtn.disabled = !isUserTurn;
+        } else {
+          solveBtn.disabled = true;
+        }
+      }
+    }
+
+    function playOpponentMove(solutionIndex, callback) {
+      if (!PUZZLE) return;
+      const opponentMove = PUZZLE.solution[solutionIndex];
+      const move = chess.move({ from: opponentMove.from, to: opponentMove.to });
+      if (move) {
+        lastOpponentMove = opponentMove;
+        ground.set({
+          fen: chess.fen(),
+          lastMove: [opponentMove.from, opponentMove.to]
+        });
+        updateBoard();
+        callback(move);
+      }
+    }
+
+    function playBlunderMove() {
+      if (!PUZZLE) return;
+      
+      // Only play blunder for dynamic puzzles
+      if (PUZZLE.type !== 'dynamic') {
+        // Static puzzle - user moves first
+        moveIndex = 0;
+        updateStatus("Your turn!");
+        updateBoard(); // Enable moves for user
+        updateSolveButton();
+        return;
+      }
+      
+      // Dynamic puzzle - opponent blunders first
+      updateStatus("Opponent plays...");
+      setTimeout(() => {
+        playOpponentMove(0, (move) => {
+          moveIndex = 1;
+          updateStatus(`Opponent played: ${move.san} - Your turn!`);
+          updateBoard(); // Enable moves for user after opponent's blunder
+          updateSolveButton();
+        });
+      }, 800);
+    }
+
+    function playOpponentResponse() {
+      playOpponentMove(moveIndex, (move) => {
+        moveIndex++;
+        updateStatus(`Opponent played: ${move.san} - Your turn!`);
+        updateSolveButton();
+      });
+    }
+
+    function playNextMove() {
+      if (!PUZZLE || solved) return;
+      
+      const expectedMove = PUZZLE.solution[moveIndex];
+      if (!expectedMove) return;
+
+      // Check if it's actually the user's turn (move should be legal)
+      const legalMoves = chess.moves({ verbose: true });
+      const isLegalMove = legalMoves.some(m => 
+        m.from === expectedMove.from && m.to === expectedMove.to
+      );
+      
+      if (!isLegalMove) {
+        // Not user's turn, opponent is playing
+        return;
+      }
+
+      // Play the expected move as if user made it
+      const move = chess.move({ from: expectedMove.from, to: expectedMove.to, promotion: 'q' });
+      if (!move) {
+        console.error('Could not play expected move');
+        return;
+      }
+
+      moveIndex++;
+      updateStatus(`${move.san} - Solution move`);
+
+      // Update board with the move
+      ground.set({
+        fen: chess.fen(),
+        lastMove: [expectedMove.from, expectedMove.to]
+      });
+
+      // Check if puzzle is solved
+      if (moveIndex >= PUZZLE.solution.length) {
+        solved = true;
+        const boardEl = document.getElementById('board');
+        boardEl.classList.remove('incorrect');
+        boardEl.classList.add('solved');
+        updateStatus(`${move.san} - Solved!`);
+        ground.set({
+          fen: chess.fen(),
+          lastMove: [expectedMove.from, expectedMove.to],
+          movable: { color: 'none', dests: new Map() }
+        });
+        updateSolveButton();
+      } else {
+        document.getElementById('board').classList.remove('incorrect');
+        // Disable button while opponent is playing
+        updateSolveButton();
+        // Play opponent's response after delay
+        setTimeout(() => {
+          playOpponentResponse();
+        }, 600);
+      }
+    }
+
+    function initPuzzle() {
+      if (!PUZZLE) {
+        return;
+      }
+
+      // Reset state
+      chess = new Chess(PUZZLE.fen);
+      moveIndex = 0;
+      lastOpponentMove = null;
+      positionBeforeUserMove = null;
+      solved = false;
+
+      // Clear board borders
+      const boardEl = document.getElementById('board');
+      boardEl.classList.remove('incorrect', 'solved');
+
+      // Update orientation from puzzle - ensure it's set correctly
+      currentOrientation = PUZZLE.orientation;
+
+      // Destroy existing ground instance if it exists
+      if (ground) {
+        ground.destroy();
+      }
+
+      ground = Chessground(document.getElementById('board'), {
+        fen: PUZZLE.fen,
+        orientation: currentOrientation,
+        turnColor: getColorToMove(),
+        movable: {
+          color: 'none',
+          dests: new Map(),
+          free: false
+        },
+        events: {
+          move: onUserMove
+        }
+      });
+
+      updateSolveButton();
+      updatePuzzleInfo();
+      playBlunderMove();
+    }
+
+    function resetPuzzle() {
+      if (!PUZZLE) {
+        return;
+      }
+
+      // Reset state
+      moveIndex = 0;
+      lastOpponentMove = null;
+      positionBeforeUserMove = null;
+      solved = false;
+      chess = new Chess(PUZZLE.fen);
+
+      // Clear board borders
+      const boardEl = document.getElementById('board');
+      boardEl.classList.remove('incorrect', 'solved');
+
+      // Reset orientation from puzzle
+      currentOrientation = PUZZLE.orientation;
+
+      ground.set({
+        fen: PUZZLE.fen,
+        orientation: currentOrientation,
+        lastMove: undefined,
+        movable: {
+          color: 'none',
+          dests: new Map()
+        }
+      });
+
+      updateSolveButton();
+      updatePuzzleInfo();
+      playBlunderMove();
+    }
+
+    function flipBoard() {
+      currentOrientation = currentOrientation === 'white' ? 'black' : 'white';
+      ground.set({ orientation: currentOrientation });
+    }
+
+    // Event listeners
+    document.getElementById('solve-btn').addEventListener('click', playNextMove);
+    document.getElementById('prev-btn').addEventListener('click', loadPrevPuzzle);
+    document.getElementById('next-btn').addEventListener('click', loadNextPuzzle);
+    document.getElementById('flip-btn').addEventListener('click', flipBoard);
+    document.getElementById('reset-btn').addEventListener('click', resetPuzzle);
+    document.getElementById('save-btn').addEventListener('click', savePuzzleState);
+    document.getElementById('puzzle-btn').addEventListener('click', () => {
+      // TODO: Implement puzzle info functionality
+      console.log('Puzzle info clicked - to be implemented');
+    });
+    
+    // Collection selector
+    document.getElementById('collection-select').addEventListener('change', (e) => {
+      onCollectionChange(e.target.value);
+    });
+
+    // Problem selector
+    document.getElementById('problem-select').addEventListener('change', (e) => {
+      const selectedFile = e.target.value;
+      if (selectedFile) {
+        loadPuzzleCollection(selectedFile);
+      }
+    });
+
+    // Initialize - load index and restore saved state
+    document.getElementById('prev-btn').disabled = true;
+    document.getElementById('next-btn').disabled = true;
+    document.getElementById('reset-btn').disabled = true;
+    document.getElementById('solve-btn').disabled = true;
+    document.getElementById('puzzle-btn').disabled = true;
+    document.getElementById('save-btn').disabled = true;
+    document.getElementById('flip-btn').disabled = true;
+
+    loadIndex().then(() => {
+      restoreSavedState();
+    });
+  </script>
+</body>
+</html>

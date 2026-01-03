@@ -1,0 +1,17 @@
+{
+  "name": "czesia",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf data",
+    "build": "bun run clean && bun run build.ts",
+    "serve": "bunx serve",
+    "dev": "bun run build && bun run serve"
+  },
+  "dependencies": {
+    "chess.js": "^1.0.0-beta.8"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

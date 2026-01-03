@@ -1,0 +1,184 @@
+[OriginalID "307"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "1Q6/8/8/8/8/k2K4/8/8 w - - 0 1"]
+
+1.Kc3 {threatening Qa7#(#1)} 1...Ka2 
+    ( 1...Ka4 2.Qb4# )
+2.Qb2# *
+
+[OriginalID "308"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/8/8/k2K4/7Q/8 w - - 0 1"]
+
+1.Kc4 Ka4 2.Qa2# *
+
+[OriginalID "309"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/k1K3Q1/8/8/8/8/8 w - - 0 1"]
+
+1.Qb1 {threatening Qa2#(#1)} 1...Ka5 
+    ( 1...Ka7 2.Qb7# )
+2.Qb5# *
+
+[OriginalID "310"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/8/8/6KQ/8/4n1k1 w - - 0 1"]
+
+1.Qh2+ Kf1 2.Qf2# *
+
+[OriginalID "311"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/2p5/2Q5/7k/5K2/8/8 w - - 0 1"]
+
+1.Qf5 {threatening Qg4#(#1)} 1...c5 2.Qg4# *
+
+[OriginalID "312"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "4K2k/8/5N2/4Q3/8/8/8/8 w - - 0 1"]
+
+1.Nh5+ Kg8 2.Qg7# *
+
+[OriginalID "313"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "5K1k/8/8/6NN/8/3p4/8/1B6 w - - 0 1"]
+
+1.Nf7+ 
+    ( 1.Nf4 {threatening Ng6#(#1)} 1...d2 2.Ng6# 
+        ( 2.Nf7# )
+    )
+    ( 1.Nf6 {threatening Nf7#(#1)} 1...d2 2.Nf7# )
+    ( 1.Ng3 d2 2.Nf7# )
+    ( 1.Ng7 d2 2.Nf7# )
+1...Kh7 2.Bxd3# *
+
+[OriginalID "314"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/6N1/8/4K3/7k/5Q2 w - - 0 1"]
+
+1.Qh3+ Kg1 2.Nf3# *
+
+[OriginalID "315"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/8/8/K3Q3/B1k5/8 w - - 0 1"]
+
+1.Bb3+ Kb1 2.Qg1# 
+    ( 2.Qe1# )
+*
+
+[OriginalID "316"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/5Q2/8/8/5p2/5K2/8/5k2 w - - 0 1"]
+
+1.Qa2 {threatening Qb1#(#1)} 1...Ke1 
+    ( 1...Kg1 2.Qg2# )
+2.Qe2# *
+
+[OriginalID "317"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/8/1N6/6K1/1P1k4/5Q2 w - - 0 1"]
+
+1.Qd3+ Kc1 
+    ( 1...Ke1 2.Nc2# )
+2.Qc2# *
+
+[OriginalID "318"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/5p2/5B2/8/1K1R4/8/2k5 w - - 0 1"]
+
+1.Bg4 {threatening Rd1#(#1)} 1...Kb1 2.Rd1# *
+
+[OriginalID "319"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/4Q3/8/6rp/7k/8/7K/8 w - - 0 1"]
+
+1.Qe1+ Rg3 
+    ( 1...Kg4 2.Qe4# )
+2.Qxg3# *
+
+[OriginalID "320"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/8/2N1p2Q/5k2/8/5K2 w - - 0 1"]
+
+1.Ne5+ Ke3 2.Qf2# *
+
+[OriginalID "321"]
+[Site "Copyright 1994 Könemann"]
+[Date "1994.??.??"]
+[Round "-"]
+[Motive "Mate in two"]
+[Black "White to move"]
+[Result "*"]
+[FEN "8/8/8/2p5/2K5/Q7/N7/1k6 w - - 0 1"]
+
+1.Kc3 {threatening Qb2#(#1)} 1...Ka1 2.Qb2# *
+

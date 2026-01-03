@@ -1,0 +1,8 @@
+{  
+  "id": "polgar-5334",
+  "name": "Polgar 5334",
+  "source": "Polgar 5334 Chess Problems",
+  "puzzleIdPrefix": "Polgar",
+  "defaultType": "static",
+  "puzzlesPerFile": 250
+}
