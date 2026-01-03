@@ -22,6 +22,7 @@
       color: black;
       min-height: 100vh;
       margin: 0;
+      box-sizing: border-box;
     }
     h1 {
       font-family: 'Fascinate Inline', cursive;
@@ -35,8 +36,9 @@
       color: #333;
     }
     #board {
-      width: 400px;
-      height: 400px;
+      width: min(400px, calc(100vw - 40px));
+      height: min(400px, calc(100vw - 40px));
+      aspect-ratio: 1;
     }
     #board.incorrect {
       box-shadow: 0 0 0 4px #e57373;
@@ -85,6 +87,57 @@
     }
     #puzzle-label-text {
       padding: 0 4px;
+    }
+    /* Mobile responsive styles */
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 36px;
+        margin-bottom: 8px;
+      }
+      .status {
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+      #board {
+        width: calc(100vw - 20px);
+        height: calc(100vw - 20px);
+      }
+      .puzzle-info {
+        font-size: 12px;
+        padding: 3px 6px;
+        gap: 3px;
+      }
+      .puzzle-action {
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+      }
+      .selectors {
+        flex-direction: column;
+        width: 100%;
+        max-width: calc(100vw - 20px);
+      }
+      .selectors select {
+        width: 100%;
+        font-size: 14px;
+        padding: 6px 10px;
+      }
+    }
+    /* Extra small devices (iPhone SE, Galaxy Fold) */
+    @media (max-width: 375px) {
+      h1 {
+        font-size: 28px;
+      }
+      .status {
+        font-size: 14px;
+      }
+      #board {
+        width: calc(100vw - 16px);
+        height: calc(100vw - 16px);
+      }
     }
   </style>
 </head>
