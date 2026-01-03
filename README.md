@@ -1,6 +1,6 @@
 <h1><img src="czesia-logo.png" alt="Czesia" height="105" align="top"> <span style="font-size: 72px; font-family: Arial, Helvetica, sans-serif;">Czesia</span></h1>
 
-Self-contained chess puzzle trainer — pure HTML/JS, no server, just tactics.
+Self-contained chess puzzle trainer — pure HTML/JS, no server, just tactics [👉 try it now](https://pnowosie.github.io/czesia/)
 
 ## Why?
 
