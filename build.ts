@@ -19,6 +19,7 @@ interface CollectionInfo {
 
 interface Puzzle {
   puzzleId: string;
+  puzzleNo: number;
   fen: string;
   type: "static" | "dynamic";
   orientation: "white" | "black";
@@ -423,11 +424,14 @@ function processCollection(collectionPath: string): { collection: Collection; pu
       const filePrefix = needsSplit ? `${fileNumber}-${partNumber}` : fileNumber;
       const jsonFilename = `${filePrefix}_${motiveSlug}.json`;
 
-      // Assign puzzle IDs
-      const puzzles = chunk.map(({ puzzle, originalId }) => {
+      // Assign puzzle IDs and puzzleNo
+      const puzzles = chunk.map(({ puzzle, originalId }, index) => {
         puzzle.puzzleId = needsSplit
           ? `${info.puzzleIdPrefix}-${fileNumber}-${partNumber}-${originalId}`
           : `${info.puzzleIdPrefix}-${fileNumber}-${originalId}`;
+        // puzzleNo: use originalId if numeric, otherwise 1-based index in this file
+        const parsedId = parseInt(originalId, 10);
+        puzzle.puzzleNo = !isNaN(parsedId) ? parsedId : index + 1;
         return puzzle;
       });
 

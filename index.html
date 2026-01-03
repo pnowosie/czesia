@@ -221,7 +221,7 @@
           type: p.type,
           solution: p.solution,
           puzzleId: p.puzzleId,
-          puzzleNo: parseInt(p.puzzleId.split('-').pop()) || 0
+          puzzleNo: p.puzzleNo
         }));
         
         if (puzzles.length === 0) {
@@ -740,8 +740,19 @@
     document.getElementById('reset-btn').addEventListener('click', resetPuzzle);
     document.getElementById('save-btn').addEventListener('click', savePuzzleState);
     document.getElementById('puzzle-btn').addEventListener('click', () => {
-      // TODO: Implement puzzle info functionality
-      console.log('Puzzle info clicked - to be implemented');
+      if (!PUZZLE || puzzles.length === 0) return;
+      const input = prompt('Enter puzzle number:');
+      if (input === null) return;
+      const num = parseInt(input.trim(), 10);
+      if (isNaN(num)) return;
+
+      // Find by puzzleNo
+      const idx = puzzles.findIndex(p => p.puzzleNo === num);
+      if (idx !== -1) {
+        loadPuzzleByIndex(idx);
+      } else {
+        updateStatus(`Puzzle #${num} not found`);
+      }
     });
     
     // Collection selector
