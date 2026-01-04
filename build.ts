@@ -233,9 +233,9 @@ function parseMoves(fen: string, movesString: string): Array<{ from: string; to:
 
   // Remove move numbers and dots
   cleanMoves = cleanMoves
-    .replace(/\d+\.\s*\.\.\.\s*/g, "")
-    .replace(/\d+\.\s*/g, "")
-    .replace(/\.\.\./g, "")
+    .replace(/\d+\.\.\.\s*/g, "")   // Black moves: 1...e5
+    .replace(/\d+\.\s*/g, "")        // White moves: 1.e4
+    .replace(/\.\.\./g, "")          // Stray ellipsis
     .trim();
 
   // Clean up any remaining parentheses or brackets
@@ -302,6 +302,7 @@ function processPGNFile(
 
       const puzzle: Puzzle = {
         puzzleId: "", // Will be set later with part number
+        puzzleNo: 0, // set later
         fen: raw.fen,
         type: info.defaultType,
         orientation: calculateOrientation(raw.fen, info.defaultType),
@@ -392,6 +393,7 @@ function processCollection(collectionPath: string): { collection: Collection; pu
 
         const puzzle: Puzzle = {
           puzzleId: "", // Set later
+          puzzleNo: 0, // Set later
           fen: raw.fen,
           type: info.defaultType,
           orientation: calculateOrientation(raw.fen, info.defaultType),
@@ -419,15 +421,16 @@ function processCollection(collectionPath: string): { collection: Collection; pu
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const partNumber = i + 1;
+      const paddedPartNumber = String(partNumber).padStart(2, '0');
 
       // Generate filename and IDs - only include part number if splitting
-      const filePrefix = needsSplit ? `${fileNumber}-${partNumber}` : fileNumber;
+      const filePrefix = needsSplit ? `${fileNumber}-${paddedPartNumber}` : fileNumber;
       const jsonFilename = `${filePrefix}_${motiveSlug}.json`;
 
       // Assign puzzle IDs and puzzleNo
       const puzzles = chunk.map(({ puzzle, originalId }, index) => {
         puzzle.puzzleId = needsSplit
-          ? `${info.puzzleIdPrefix}-${fileNumber}-${partNumber}-${originalId}`
+          ? `${info.puzzleIdPrefix}-${fileNumber}-${paddedPartNumber}-${originalId}`
           : `${info.puzzleIdPrefix}-${fileNumber}-${originalId}`;
         // puzzleNo: use originalId if numeric, otherwise 1-based index in this file
         const parsedId = parseInt(originalId, 10);
