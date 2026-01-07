@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +25,7 @@
       margin: 0;
       box-sizing: border-box;
     }
+
     .header {
       display: flex;
       align-items: center;
@@ -33,6 +35,7 @@
       width: 100%;
       max-width: 600px;
     }
+
     h1 {
       font-family: 'Fascinate Inline', cursive;
       font-size: 64px;
@@ -40,6 +43,7 @@
       margin: 0 0 10px 0;
       display: inline-block;
     }
+
     .about-link {
       font-family: system-ui, sans-serif;
       font-size: 10px;
@@ -50,25 +54,31 @@
       vertical-align: super;
       margin-left: 2px;
     }
+
     .about-link:hover {
       color: #000;
     }
+
     .status {
       margin-bottom: 15px;
       font-size: 18px;
       color: #333;
     }
+
     #board {
       width: min(400px, calc(100vw - 40px));
       height: min(400px, calc(100vw - 40px));
       aspect-ratio: 1;
     }
+
     #board.incorrect {
       box-shadow: 0 0 0 4px #e57373;
     }
+
     #board.solved {
       box-shadow: 0 0 0 4px #28a745;
     }
+
     .puzzle-info {
       margin-top: 15px;
       display: inline-flex;
@@ -83,9 +93,11 @@
       color: #000;
       font-family: 'Courier New', monospace;
     }
+
     .puzzle-info-icon {
       font-size: 16px;
     }
+
     .puzzle-action {
       display: flex;
       align-items: center;
@@ -101,65 +113,80 @@
       padding: 0;
       color: #000;
     }
+
     .puzzle-action:hover:not(:disabled) {
       background: #e0e0e0;
     }
+
     .puzzle-action:disabled {
       opacity: 0.4;
       cursor: not-allowed;
     }
+
     #puzzle-label-text {
       padding: 0 4px;
     }
+
     /* Mobile responsive styles */
     @media (max-width: 480px) {
       body {
         padding: 10px;
       }
+
       .header {
         gap: 10px;
       }
+
       h1 {
         font-size: 36px;
         margin-bottom: 8px;
       }
+
       .status {
         font-size: 16px;
         margin-bottom: 10px;
       }
+
       #board {
         width: calc(100vw - 20px);
         height: calc(100vw - 20px);
       }
+
       .puzzle-info {
         font-size: 12px;
         padding: 3px 6px;
         gap: 3px;
       }
+
       .puzzle-action {
         width: 24px;
         height: 24px;
         font-size: 14px;
       }
+
       .selectors {
         flex-direction: column;
         width: 100%;
         max-width: calc(100vw - 20px);
       }
+
       .selectors select {
         width: 100%;
         font-size: 14px;
         padding: 6px 10px;
       }
     }
+
     /* Extra small devices (iPhone SE, Galaxy Fold) */
     @media (max-width: 375px) {
       h1 {
         font-size: 28px;
       }
+
       .status {
         font-size: 14px;
       }
+
       #board {
         width: calc(100vw - 16px);
         height: calc(100vw - 16px);
@@ -167,9 +194,11 @@
     }
   </style>
 </head>
+
 <body>
   <div class="header">
-    <h1>Czesia<a href="https://github.com/pnowosie/czesia/" target="_blank" rel="noopener noreferrer" class="about-link" title="About / GitHub Repository">info</a></h1>
+    <h1>Czesia<a href="https://github.com/pnowosie/czesia/" target="_blank" rel="noopener noreferrer" class="about-link"
+        title="About / GitHub Repository">info</a></h1>
   </div>
   <div class="status" id="status">Loading...</div>
   <div id="board"></div>
@@ -184,10 +213,12 @@
     <button class="puzzle-action" id="next-btn" title="Next puzzle">▶</button>
   </div>
   <div class="selectors" style="margin-top: 15px; display: flex; gap: 10px;">
-    <select id="collection-select" style="padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
+    <select id="collection-select"
+      style="padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
       <option value="">Select a collection...</option>
     </select>
-    <select id="problem-select" style="padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; display: none;">
+    <select id="problem-select"
+      style="padding: 8px 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; display: none;">
       <option value="">Select a problem...</option>
     </select>
   </div>
@@ -201,11 +232,11 @@
     let currentPuzzleIndex = 0;
     let PUZZLE = null;
     let indexData = null;
-    
+
     /**
      * Load puzzles from a JSON file
      */
-    async function loadPuzzleCollection(jsonFile) {
+    async function loadPuzzleCollection(jsonFile, collectionId) {
       try {
         updateStatus('Loading puzzles...');
         const response = await fetch(jsonFile);
@@ -213,7 +244,7 @@
           throw new Error(`Failed to load ${jsonFile}: ${response.statusText}`);
         }
         const data = await response.json();
-        
+
         // Convert JSON puzzle format to internal format
         puzzles = data.map(p => ({
           fen: p.fen,
@@ -223,13 +254,16 @@
           puzzleId: p.puzzleId,
           puzzleNo: p.puzzleNo
         }));
-        
+
         if (puzzles.length === 0) {
           throw new Error('No puzzles found in collection');
         }
-        
-        // Load first puzzle
-        currentPuzzleIndex = 0;
+
+        const savedIndex = getSavedPuzzleIndex(collectionId, jsonFile);
+        const targetIndex = typeof savedIndex === 'number' && savedIndex >= 0 && savedIndex < puzzles.length
+          ? savedIndex
+          : 0;
+        currentPuzzleIndex = targetIndex;
         PUZZLE = puzzles[currentPuzzleIndex];
         updatePuzzleInfo();
         updateNavigationButtons();
@@ -309,7 +343,7 @@
         initPuzzle();
       }
     }
-    
+
     /**
      * Load next puzzle
      */
@@ -330,58 +364,124 @@
 
     const STORAGE_KEY = 'czesia-saved-puzzle';
 
-    /**
-     * Save current puzzle state to localStorage
-     */
+    function makeRegistryKey(collectionId, problemFile) {
+      return `${collectionId}::${problemFile}`;
+    }
+
+    function parseRegistryKey(key) {
+      if (!key) return null;
+      const [collectionId, problemFile] = key.split('::');
+      if (!collectionId || !problemFile) return null;
+      return { collectionId, problemFile };
+    }
+
+    function readSavedRegistry() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        return { lastSelection: null, positions: {} };
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        return {
+          lastSelection: parsed.lastSelection ?? null,
+          positions: parsed.positions ?? {}
+        };
+      } catch (error) {
+        console.error('Error reading saved registry:', error);
+        return { lastSelection: null, positions: {} };
+      }
+    }
+
+    function persistSavedRegistry(registry) {
+      const safeRegistry = {
+        lastSelection: registry.lastSelection ?? null,
+        positions: registry.positions ?? {}
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeRegistry));
+    }
+
+    function getSavedPuzzleIndex(collectionId, problemFile) {
+      if (!collectionId || !problemFile) {
+        return undefined;
+      }
+      const registry = readSavedRegistry();
+      const key = makeRegistryKey(collectionId, problemFile);
+      return registry.positions[key]?.puzzleIndex;
+    }
+
     function savePuzzleState() {
       if (!PUZZLE) return;
 
       const collectionSelect = document.getElementById('collection-select');
       const problemSelect = document.getElementById('problem-select');
+      const collectionId = collectionSelect.value;
+      const problemFile = problemSelect.value;
 
-      const state = {
-        collectionId: collectionSelect.value,
-        problemFile: problemSelect.value,
-        puzzleIndex: currentPuzzleIndex
-      };
+      if (!collectionId || !problemFile) {
+        updateStatus('Select a collection and problem before saving');
+        return;
+      }
 
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      updateStatus('Puzzle saved!');
+      const registry = readSavedRegistry();
+      if (!registry.positions) {
+        registry.positions = {};
+      }
+      const key = makeRegistryKey(collectionId, problemFile);
+      registry.positions[key] = { puzzleIndex: currentPuzzleIndex };
+      registry.lastSelection = { collectionId, problemFile };
+
+      persistSavedRegistry(registry);
+      updateStatus('Saved position for this problem set');
     }
 
-    /**
-     * Restore saved puzzle state from localStorage
-     */
     async function restoreSavedState() {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (!saved) return false;
+      const registry = readSavedRegistry();
+      const selection = registry.lastSelection;
+      if (!selection?.collectionId || !selection?.problemFile) {
+        return false;
+      }
 
       try {
-        const state = JSON.parse(saved);
-        if (!state.collectionId || !state.problemFile) return false;
-
-        // Set collection dropdown
         const collectionSelect = document.getElementById('collection-select');
-        collectionSelect.value = state.collectionId;
-        onCollectionChange(state.collectionId);
+        collectionSelect.value = selection.collectionId;
+        onCollectionChange(selection.collectionId);
 
-        // Set problem dropdown
         const problemSelect = document.getElementById('problem-select');
-        problemSelect.value = state.problemFile;
+        problemSelect.value = selection.problemFile;
 
-        // Load the puzzle collection
-        await loadPuzzleCollection(state.problemFile);
-
-        // Navigate to saved puzzle index
-        if (state.puzzleIndex >= 0 && state.puzzleIndex < puzzles.length) {
-          loadPuzzleByIndex(state.puzzleIndex);
-        }
-
+        await loadPuzzleCollection(selection.problemFile, selection.collectionId);
         return true;
       } catch (error) {
         console.error('Error restoring saved state:', error);
         return false;
       }
+    }
+
+    function resetSavedPositionForCurrentSet() {
+      if (!PUZZLE) return;
+
+      const collectionSelect = document.getElementById('collection-select');
+      const problemSelect = document.getElementById('problem-select');
+      const collectionId = collectionSelect.value;
+      const problemFile = problemSelect.value;
+
+      if (!collectionId || !problemFile) return;
+
+      const registry = readSavedRegistry();
+      const key = makeRegistryKey(collectionId, problemFile);
+      if (registry.positions) {
+        delete registry.positions[key];
+      }
+      const remainingKeys = registry.positions ? Object.keys(registry.positions) : [];
+      if (remainingKeys.length > 0) {
+        const parsed = parseRegistryKey(remainingKeys[0]);
+        registry.lastSelection = parsed;
+      } else {
+        registry.lastSelection = null;
+      }
+      persistSavedRegistry(registry);
+      loadPuzzleByIndex(0);
     }
 
     /**
@@ -562,7 +662,7 @@
 
     function playBlunderMove() {
       if (!PUZZLE) return;
-      
+
       // Only play blunder for dynamic puzzles
       if (PUZZLE.type !== 'dynamic') {
         // Static puzzle - user moves first
@@ -572,7 +672,7 @@
         updateSolveButton();
         return;
       }
-      
+
       // Dynamic puzzle - opponent blunders first
       updateStatus("Opponent plays...");
       setTimeout(() => {
@@ -595,16 +695,16 @@
 
     function playNextMove() {
       if (!PUZZLE || solved) return;
-      
+
       const expectedMove = PUZZLE.solution[moveIndex];
       if (!expectedMove) return;
 
       // Check if it's actually the user's turn (move should be legal)
       const legalMoves = chess.moves({ verbose: true });
-      const isLegalMove = legalMoves.some(m => 
+      const isLegalMove = legalMoves.some(m =>
         m.from === expectedMove.from && m.to === expectedMove.to
       );
-      
+
       if (!isLegalMove) {
         // Not user's turn, opponent is playing
         return;
@@ -738,7 +838,42 @@
     document.getElementById('next-btn').addEventListener('click', loadNextPuzzle);
     document.getElementById('flip-btn').addEventListener('click', flipBoard);
     document.getElementById('reset-btn').addEventListener('click', resetPuzzle);
-    document.getElementById('save-btn').addEventListener('click', savePuzzleState);
+    const saveBtn = document.getElementById('save-btn');
+    const SAVE_LONG_PRESS_DURATION = 600;
+    let saveLongPressTimer = null;
+    let saveLongPressTriggered = false;
+
+    function startSaveLongPress() {
+      saveLongPressTriggered = false;
+      if (saveLongPressTimer) {
+        clearTimeout(saveLongPressTimer);
+      }
+      saveLongPressTimer = setTimeout(() => {
+        saveLongPressTriggered = true;
+        saveLongPressTimer = null;
+        resetSavedPositionForCurrentSet();
+      }, SAVE_LONG_PRESS_DURATION);
+    }
+
+    function stopSaveLongPress() {
+      if (saveLongPressTimer) {
+        clearTimeout(saveLongPressTimer);
+        saveLongPressTimer = null;
+      }
+    }
+
+    saveBtn.addEventListener('pointerdown', startSaveLongPress);
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(eventName => {
+      saveBtn.addEventListener(eventName, stopSaveLongPress);
+    });
+    saveBtn.addEventListener('click', (event) => {
+      if (saveLongPressTriggered) {
+        event.preventDefault();
+        saveLongPressTriggered = false;
+        return;
+      }
+      savePuzzleState();
+    });
     document.getElementById('puzzle-btn').addEventListener('click', () => {
       if (!PUZZLE || puzzles.length === 0) return;
       const input = prompt('Enter puzzle number:');
@@ -754,7 +889,7 @@
         updateStatus(`Puzzle #${num} not found`);
       }
     });
-    
+
     // Collection selector
     document.getElementById('collection-select').addEventListener('change', (e) => {
       onCollectionChange(e.target.value);
@@ -764,7 +899,8 @@
     document.getElementById('problem-select').addEventListener('change', (e) => {
       const selectedFile = e.target.value;
       if (selectedFile) {
-        loadPuzzleCollection(selectedFile);
+        const collectionId = document.getElementById('collection-select').value;
+        loadPuzzleCollection(selectedFile, collectionId);
       }
     });
 
@@ -782,4 +918,5 @@
     });
   </script>
 </body>
+
 </html>
