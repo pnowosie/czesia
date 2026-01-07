@@ -192,6 +192,17 @@
         height: calc(100vw - 16px);
       }
     }
+
+    .version-indicator {
+      position: fixed;
+      bottom: 8px;
+      left: 10px;
+      font-size: 12px;
+      color: black;
+      font-family: 'Courier New', monospace;
+      pointer-events: none;
+      user-select: none;
+    }
   </style>
 </head>
 
@@ -917,6 +928,7 @@
       restoreSavedState();
     });
   </script>
+  <div class="version-indicator">2026.01.07</div>
 </body>
 
 </html>

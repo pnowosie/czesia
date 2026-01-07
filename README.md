@@ -107,3 +107,21 @@ This project stands on the shoulders of two great libraries:
 - **[chess.js](https://github.com/jhlywa/chess.js)** — the brains behind move validation
 
 Huge thanks to their authors for making chess development so accessible.
+
+---
+
+## Dev Notes
+
+### Version timestamp
+
+A pre-commit hook auto-updates the version indicator in `index.html`. To restore it on a fresh clone:
+
+```bash
+cat > .git/hooks/pre-commit << 'EOF'
+#!/bin/sh
+DATE=$(date +%Y.%m.%d)
+sed -i '' "s/<div class=\"version-indicator\">.*<\/div>/<div class=\"version-indicator\">$DATE<\/div>/" index.html
+git add index.html
+EOF
+chmod +x .git/hooks/pre-commit
+```
